@@ -1,0 +1,126 @@
+openapi: 3.0.4
+
+info:
+  title: Stats Server API
+  version: v1
+
+paths:
+
+  /servers/{endpoint}/info:
+    get:
+      summary: Server info
+      description: Returns basic information about a specific game server.
+      operationId: getServerInfo
+      parameters:
+        - name: endpoint
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved server info
+
+  /servers/{endpoint}/matches/{timestamp}:
+    get:
+      summary: Matches for server since timestamp
+      description: Returns all matches that occurred on the given server since the specified timestamp.
+      operationId: getMatches
+      parameters:
+        - name: endpoint
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: timestamp
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successfully retrieved matches
+
+  /servers/info:
+    get:
+      summary: All servers info
+      description: Returns basic information for all available game servers.
+      operationId: getAllServers
+      responses:
+        '200':
+          description: Successfully retrieved all servers info
+
+  /servers/{endpoint}/stats:
+    get:
+      summary: Stats for server
+      description: Returns aggregated statistics for the specified server.
+      operationId: getServerStats
+      parameters:
+        - name: endpoint
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved server stats
+
+  /players/{name}/stats:
+    get:
+      summary: Player stats
+      description: Returns aggregated statistics for a specific player.
+      operationId: getPlayerStats
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved player stats
+
+  /reports/recent-matches/{count}:
+    get:
+      summary: Recent matches
+      description: Returns a list of the most recent matches across all servers, limited by count.
+      operationId: recentMatches
+      parameters:
+        - name: count
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successfully retrieved recent matches
+
+  /reports/best-players/{count}:
+    get:
+      summary: Best players
+      description: Returns the top players based on performance metrics, limited by count.
+      operationId: bestPlayers
+      parameters:
+        - name: count
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successfully retrieved best players
+
+  /reports/popular-servers/{count}:
+    get:
+      summary: Popular servers
+      description: Returns the most popular game servers, limited by count.
+      operationId: popularServers
+      parameters:
+        - name: count
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successfully retrieved popular servers
