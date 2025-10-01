@@ -1,0 +1,32 @@
+[
+  {
+    "endpoint": "first-server.com",
+    "name": "First Server",
+    "region": "US-East"
+  },
+  {
+    "endpoint": "second-server.com",
+    "name": "Second Server",
+    "region": "Europe-West"
+  },
+  {
+    "endpoint": "third-server.com",
+    "name": "Third Server",
+    "region": "Asia-South"
+  },
+  {
+    "endpoint": "fourth-server.com",
+    "name": "Fourth Server",
+    "region": "US-West"
+  },
+  {
+    "endpoint": "fifth-server.com",
+    "name": "Fifth Server",
+    "region": "Europe-North"
+  },
+  {
+    "endpoint": "sixth-server.com",
+    "name": "Sixth Server",
+    "region": "Asia-East"
+  }
+]
