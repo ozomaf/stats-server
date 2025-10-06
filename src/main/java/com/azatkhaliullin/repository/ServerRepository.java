@@ -22,16 +22,6 @@ public class ServerRepository {
     private static final String KEY_SERVERS = "servers";
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public void save(ServerInfo serverInfo) {
-        try {
-            hashOps().put(KEY_SERVERS, serverInfo.getEndpoint(), serverInfo);
-            log.debug("Saved server with endpoint {}", serverInfo.getEndpoint());
-        } catch (Exception e) {
-            log.error("Failed to save server with endpoint {}", serverInfo.getEndpoint(), e);
-            throw e;
-        }
-    }
-
     public void saveAll(Collection<ServerInfo> servers) {
         try {
             if (servers == null || servers.isEmpty()) {

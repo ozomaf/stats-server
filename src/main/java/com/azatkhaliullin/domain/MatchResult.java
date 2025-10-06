@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -16,5 +16,5 @@ public class MatchResult {
     private String id;
     private String serverEndpoint;
     private Instant playedAt;
-    private List<PlayerScore> scores;
+    private Map<String, Integer> scores;
 }

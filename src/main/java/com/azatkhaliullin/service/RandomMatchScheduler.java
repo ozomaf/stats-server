@@ -2,7 +2,6 @@ package com.azatkhaliullin.service;
 
 import com.azatkhaliullin.domain.MatchResult;
 import com.azatkhaliullin.domain.Player;
-import com.azatkhaliullin.domain.PlayerScore;
 import com.azatkhaliullin.domain.ServerInfo;
 import com.azatkhaliullin.repository.MatchRepository;
 import com.azatkhaliullin.repository.PlayerRepository;
@@ -14,8 +13,10 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -40,7 +41,7 @@ public class RandomMatchScheduler {
 
         ServerInfo server = selectRandomServer(servers);
         List<Player> participants = selectRandomPlayers(players);
-        List<PlayerScore> playerScores = generateScores(participants);
+        Map<String, Integer> playerScores = generateScores(participants);
 
         MatchResult match = MatchResult.builder()
                 .id(UUID.randomUUID().toString())
@@ -68,13 +69,10 @@ public class RandomMatchScheduler {
                 .toList();
     }
 
-    private List<PlayerScore> generateScores(List<Player> participants) {
+    private Map<String, Integer> generateScores(List<Player> participants) {
         return participants.stream()
-                .map(p -> PlayerScore.builder()
-                        .playerUsername(p.getUsername())
-                        .playerDisplayName(p.getDisplayName())
-                        .score(random.nextInt(101))
-                        .build())
-                .toList();
+                .collect(Collectors.toMap(
+                        Player::getUsername,
+                        p -> random.nextInt(101)));
     }
 }

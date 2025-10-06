@@ -59,6 +59,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.openapitools</groupId>
+            <artifactId>jackson-databind-nullable</artifactId>
+            <version>0.2.7</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -95,9 +100,12 @@
                             <generatorName>spring</generatorName>
                             <output>${project.build.directory}/generated-sources/openapi/</output>
                             <apiPackage>com.azatkhaliullin.api</apiPackage>
+                            <modelPackage>com.azatkhaliullin.dto</modelPackage>
                             <supportingFilesToGenerate>ApiUtil.java</supportingFilesToGenerate>
                             <invokerPackage>com.azatkhaliullin</invokerPackage>
                             <configOptions>
+                                <useLombok>true</useLombok>
+                                <additionalModelTypeAnnotations>@lombok.Builder</additionalModelTypeAnnotations>
                                 <useSpringBoot3>true</useSpringBoot3>
                                 <interfaceOnly>true</interfaceOnly>
                             </configOptions>

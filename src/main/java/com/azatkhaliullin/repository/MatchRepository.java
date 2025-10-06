@@ -9,7 +9,10 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
 
 @Slf4j
 @Repository
@@ -29,32 +32,85 @@ public class MatchRepository {
         }
     }
 
-    public List<MatchResult> getMatchesSince(String endpoint, Instant since) {
+    public List<MatchResult> getAllMatches() {
         try {
-            List<Object> retrievedMatches = listOps().range(keyForServer(endpoint), 0, -1);
-            if (retrievedMatches == null || retrievedMatches.isEmpty()) {
-                log.debug("No matches found for server {} since {}", endpoint, since);
+            return getAllMatchKeys().stream()
+                    .flatMap(key -> {
+                        List<Object> matches = listOps().range(key, 0, -1);
+                        return matches != null ? matches.stream() : Stream.empty();
+                    })
+                    .map(m -> (MatchResult) m)
+                    .toList();
+        } catch (Exception e) {
+            log.error("Failed to get all matches from Redis", e);
+            return Collections.emptyList();
+        }
+    }
+
+    public List<MatchResult> getAllMatchesForServer(String endpoint) {
+        try {
+            List<Object> matches = listOps().range(keyForServer(endpoint), 0, -1);
+            if (matches == null || matches.isEmpty()) {
+                log.debug("No matches found for server {}", endpoint);
                 return Collections.emptyList();
             }
-
-            List<MatchResult> filtered = retrievedMatches.stream()
+            return matches.stream()
                     .map(m -> (MatchResult) m)
-                    .filter(m -> m.getPlayedAt() != null && !m.getPlayedAt().isBefore(since))
                     .toList();
+        } catch (Exception e) {
+            log.error("Failed to get matches for endpoint {}", endpoint, e);
+            return Collections.emptyList();
+        }
+    }
 
-            log.debug("Retrieved {} matches for server {} since {}", filtered.size(), endpoint, since);
-            return filtered;
+    public List<MatchResult> getAllMatchesForPlayer(String username) {
+        try {
+            return getAllMatches().stream()
+                    .filter(match -> match.getScores().containsKey(username))
+                    .toList();
+        } catch (Exception e) {
+            log.error("Failed to get matches for player {}", username, e);
+            return Collections.emptyList();
+        }
+    }
+
+    public List<MatchResult> getRecentMatches(int count) {
+        try {
+            return getAllMatches().stream()
+                    .sorted(Comparator.comparing(MatchResult::getPlayedAt).reversed())
+                    .limit(count)
+                    .toList();
+        } catch (Exception e) {
+            log.error("Failed to get recent matches globally from Redis", e);
+            return Collections.emptyList();
+        }
+    }
+
+    public List<MatchResult> getMatchesSince(String endpoint, Instant since) {
+        try {
+            return getAllMatchesForServer(endpoint).stream()
+                    .filter(m -> m.getPlayedAt().isAfter(since))
+                    .toList();
         } catch (Exception e) {
             log.error("Failed to get matches from Redis for server {} since {}", endpoint, since, e);
             return Collections.emptyList();
         }
     }
 
+    private String keyForServer(String endpoint) {
+        return MATCH_KEY_PREFIX + endpoint;
+    }
+
     private ListOperations<String, Object> listOps() {
         return redisTemplate.opsForList();
     }
 
-    private String keyForServer(String endpoint) {
-        return MATCH_KEY_PREFIX + endpoint;
+    private Set<String> getAllMatchKeys() {
+        Set<String> allKeys = redisTemplate.keys(MATCH_KEY_PREFIX + "*");
+        if (allKeys.isEmpty()) {
+            log.debug("No match keys found");
+            return Collections.emptySet();
+        }
+        return allKeys;
     }
 }

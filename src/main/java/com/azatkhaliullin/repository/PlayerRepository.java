@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -21,16 +20,6 @@ public class PlayerRepository {
 
     private static final String KEY_PLAYERS = "players";
     private final RedisTemplate<String, Object> redisTemplate;
-
-    public void save(Player player) {
-        try {
-            hashOps().put(KEY_PLAYERS, player.getUsername(), player);
-            log.debug("Saved player with ID {}", player.getUsername());
-        } catch (Exception e) {
-            log.error("Failed to save player with ID {}", player.getUsername(), e);
-            throw e;
-        }
-    }
 
     public void saveAll(Collection<Player> players) {
         try {
@@ -45,15 +34,6 @@ public class PlayerRepository {
         } catch (Exception e) {
             log.error("Failed to save players collection", e);
             throw e;
-        }
-    }
-
-    public Optional<Player> findById(String id) {
-        try {
-            return Optional.ofNullable(hashOps().get(KEY_PLAYERS, id));
-        } catch (Exception e) {
-            log.error("Failed to find player with ID {}", id, e);
-            return Optional.empty();
         }
     }
 

@@ -8,7 +8,7 @@ paths:
 
   /servers/{endpoint}/info:
     get:
-      summary: Server info
+      summary: Get server info
       description: Returns basic information about a specific game server.
       operationId: getServerInfo
       parameters:
@@ -20,12 +20,20 @@ paths:
       responses:
         '200':
           description: Successfully retrieved server info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerInfoDto'
+        '404':
+          description: Server not found
+        '500':
+          description: Internal server error
 
   /servers/{endpoint}/matches/{timestamp}:
     get:
-      summary: Matches for server since timestamp
+      summary: Get matches since timestamp
       description: Returns all matches that occurred on the given server since the specified timestamp.
-      operationId: getMatches
+      operationId: getMatchesSince
       parameters:
         - name: endpoint
           in: path
@@ -37,22 +45,44 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
+            description: Unix timestamp in seconds
       responses:
         '200':
           description: Successfully retrieved matches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MatchResultDto'
+        '400':
+          description: Invalid timestamp or endpoint
+        '404':
+          description: Server not found
+        '500':
+          description: Internal server error
 
   /servers/info:
     get:
-      summary: All servers info
+      summary: Get all servers info
       description: Returns basic information for all available game servers.
-      operationId: getAllServers
+      operationId: getAllServersInfo
       responses:
         '200':
           description: Successfully retrieved all servers info
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServerInfoDto'
+        '500':
+          description: Internal server error
 
   /servers/{endpoint}/stats:
     get:
-      summary: Stats for server
+      summary: Get server stats
       description: Returns aggregated statistics for the specified server.
       operationId: getServerStats
       parameters:
@@ -64,14 +94,22 @@ paths:
       responses:
         '200':
           description: Successfully retrieved server stats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerStatsDto'
+        '404':
+          description: Server not found
+        '500':
+          description: Internal server error
 
-  /players/{name}/stats:
+  /players/{username}/stats:
     get:
-      summary: Player stats
+      summary: Get player stats
       description: Returns aggregated statistics for a specific player.
       operationId: getPlayerStats
       parameters:
-        - name: name
+        - name: username
           in: path
           required: true
           schema:
@@ -79,48 +117,209 @@ paths:
       responses:
         '200':
           description: Successfully retrieved player stats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerStatsDto'
+        '404':
+          description: Player not found
+        '500':
+          description: Internal server error
 
   /reports/recent-matches/{count}:
     get:
-      summary: Recent matches
+      summary: Get recent matches
       description: Returns a list of the most recent matches across all servers, limited by count.
-      operationId: recentMatches
+      operationId: getRecentMatches
       parameters:
         - name: count
           in: path
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         '200':
           description: Successfully retrieved recent matches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MatchResultDto'
+        '400':
+          description: Invalid count
+        '500':
+          description: Internal server error
 
   /reports/best-players/{count}:
     get:
-      summary: Best players
-      description: Returns the top players based on performance metrics, limited by count.
-      operationId: bestPlayers
+      summary: Get best players
+      description: Returns the top players based on multiple performance metrics, limited by count.
+      operationId: getBestPlayers
       parameters:
         - name: count
           in: path
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         '200':
           description: Successfully retrieved best players
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlayerStatsDto'
+        '400':
+          description: Invalid count
+        '500':
+          description: Internal server error
 
   /reports/popular-servers/{count}:
     get:
-      summary: Popular servers
+      summary: Get popular servers
       description: Returns the most popular game servers, limited by count.
-      operationId: popularServers
+      operationId: getPopularServers
       parameters:
         - name: count
           in: path
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         '200':
           description: Successfully retrieved popular servers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServerStatsDto'
+        '400':
+          description: Invalid count
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+
+    ServerInfoDto:
+      type: object
+      properties:
+        endpoint:
+          type: string
+          description: Server endpoint URL
+        name:
+          type: string
+          description: Server display name
+        region:
+          type: string
+          description: Server region
+      required:
+        - endpoint
+        - name
+        - region
+
+    MatchResultDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique match identifier
+        serverEndpoint:
+          type: string
+          description: Server where the match was played
+        playedAt:
+          type: string
+          format: date-time
+          description: When the match was played
+        scores:
+          type: object
+          description: Map of player scores in the match, key = username
+          additionalProperties:
+            type: integer
+      required:
+        - id
+        - serverEndpoint
+        - playedAt
+        - scores
+
+    PlayerStatsDto:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Player's username
+        totalMatches:
+          type: integer
+          description: Total number of matches played
+          minimum: 0
+        totalScore:
+          type: integer
+          description: Total score across all matches
+          minimum: 0
+        averageScore:
+          type: number
+          format: double
+          description: Average score per match
+        bestScore:
+          type: integer
+          description: Best score achieved
+          minimum: 0
+        worstScore:
+          type: integer
+          description: Worst score achieved
+          minimum: 0
+        rating:
+          type: number
+          format: double
+          description: Player rating
+      required:
+        - username
+        - totalMatches
+        - totalScore
+        - averageScore
+        - bestScore
+        - worstScore
+        - rating
+
+    ServerStatsDto:
+      type: object
+      properties:
+        endpoint:
+          type: string
+          description: Server endpoint URL
+        name:
+          type: string
+          description: Server display name
+        region:
+          type: string
+          description: Server region
+        totalMatches:
+          type: integer
+          description: Total number of matches on this server
+          minimum: 0
+        averagePlayersPerMatch:
+          type: integer
+          description: Average number of players per match
+          minimum: 0
+        totalScore:
+          type: integer
+          description: Total score across all matches
+          minimum: 0
+        averageScore:
+          type: number
+          format: double
+          description: Average score per player
+      required:
+        - endpoint
+        - name
+        - region
+        - totalMatches
+        - averagePlayersPerMatch
+        - totalScore
+        - averageScore
