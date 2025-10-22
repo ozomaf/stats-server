@@ -12,16 +12,19 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-import static com.azatkhaliullin.TestDataFactory.SERVER_EU_ENDPOINT;
-import static com.azatkhaliullin.TestDataFactory.SERVER_US_ENDPOINT;
-import static com.azatkhaliullin.TestDataFactory.UNKNOWN_SERVER;
-import static com.azatkhaliullin.TestDataFactory.matchResultDto;
-import static com.azatkhaliullin.TestDataFactory.serverInfoDto;
-import static com.azatkhaliullin.TestDataFactory.serverStatsDto;
+import static com.azatkhaliullin.TestConstants.DEFAULT_PLAYED_AT;
+import static com.azatkhaliullin.TestConstants.DEFAULT_TIMESTAMP;
+import static com.azatkhaliullin.TestConstants.ID_A;
+import static com.azatkhaliullin.TestConstants.ID_B;
+import static com.azatkhaliullin.TestConstants.SERVER_EU_ENDPOINT;
+import static com.azatkhaliullin.TestConstants.SERVER_US_ENDPOINT;
+import static com.azatkhaliullin.TestConstants.UNKNOWN_SERVER;
+import static com.azatkhaliullin.builder.MatchResultTestBuilder.testMatchResult;
+import static com.azatkhaliullin.builder.ServerInfoBuilder.testServerInfo;
+import static com.azatkhaliullin.builder.ServerStatsDtoBuilder.testServerStatsDto;
 import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -34,10 +37,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(ServerController.class)
 class ServerControllerTest {
 
-    public static final String GET_SERVER_INFO_PATH = "/servers/{endpoint}/info";
-    public static final String GET_SERVER_MATCHES_SINCE_PATH = "/servers/{endpoint}/matches/{timestamp}";
+    public static final String GET_SERVER_INFO_PATH = "/servers/info/by-endpoint";
+    public static final String GET_SERVER_MATCHES_SINCE_PATH = "/servers/matches/{timestamp}";
     public static final String GET_SERVERS_INFO_PATH = "/servers/info";
-    public static final String GET_SERVER_STATS_PATH = "/servers/{endpoint}/stats";
+    public static final String GET_SERVER_STATS_PATH = "/servers/stats";
+
+    public static final String PARAM_ENDPOINT = "endpoint";
 
     @Autowired
     private MockMvc mockMvc;
@@ -46,16 +51,17 @@ class ServerControllerTest {
     private ServerService serverService;
 
     @Nested
-    @DisplayName("GET /servers/{endpoint}/info")
+    @DisplayName("GET /servers/info/by-endpoint")
     class GetServerInfo {
 
         @Test
         void shouldReturnServerInfoWhenFound() throws Exception {
-            ServerInfoDto serverInfo = serverInfoDto(SERVER_EU_ENDPOINT);
+            ServerInfoDto serverInfo = testServerInfo().withEndpoint(SERVER_EU_ENDPOINT).buildDto();
 
             when(serverService.getServerInfo(SERVER_EU_ENDPOINT)).thenReturn(Optional.of(serverInfo));
 
-            mockMvc.perform(get(GET_SERVER_INFO_PATH, SERVER_EU_ENDPOINT).accept(APPLICATION_JSON))
+            mockMvc.perform(get(GET_SERVER_INFO_PATH)
+                            .param(PARAM_ENDPOINT, SERVER_EU_ENDPOINT).accept(APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.endpoint").value(SERVER_EU_ENDPOINT));
 
@@ -67,7 +73,8 @@ class ServerControllerTest {
         void shouldReturn404WhenServerNotFound() throws Exception {
             when(serverService.getServerInfo(UNKNOWN_SERVER)).thenReturn(Optional.empty());
 
-            mockMvc.perform(get(GET_SERVER_INFO_PATH, UNKNOWN_SERVER).accept(APPLICATION_JSON))
+            mockMvc.perform(get(GET_SERVER_INFO_PATH)
+                            .param(PARAM_ENDPOINT, UNKNOWN_SERVER).accept(APPLICATION_JSON))
                     .andExpect(status().isNotFound());
 
             verify(serverService).getServerInfo(UNKNOWN_SERVER);
@@ -78,7 +85,8 @@ class ServerControllerTest {
         void shouldReturn500WhenServiceFails() throws Exception {
             when(serverService.getServerInfo(SERVER_EU_ENDPOINT)).thenThrow(new RuntimeException());
 
-            mockMvc.perform(get(GET_SERVER_INFO_PATH, SERVER_EU_ENDPOINT).accept(APPLICATION_JSON))
+            mockMvc.perform(get(GET_SERVER_INFO_PATH)
+                            .param(PARAM_ENDPOINT, SERVER_EU_ENDPOINT).accept(APPLICATION_JSON))
                     .andExpect(status().isInternalServerError());
 
             verify(serverService).getServerInfo(SERVER_EU_ENDPOINT);
@@ -87,61 +95,52 @@ class ServerControllerTest {
     }
 
     @Nested
-    @DisplayName("GET /servers/{endpoint}/matches/{timestamp}")
+    @DisplayName("GET /servers/matches/{timestamp}")
     class GetMatchesSince {
 
         @Test
         void shouldReturnMatchesSinceTimestamp() throws Exception {
-            long timestamp = 1_700_000_000L;
-            Instant since = Instant.ofEpochSecond(timestamp);
+            List<MatchResultDto> matches = List.of(
+                    testMatchResult().withId(ID_A).buildDto(),
+                    testMatchResult().withId(ID_B).buildDto());
 
-            MatchResultDto m1 = matchResultDto(SERVER_EU_ENDPOINT);
-            MatchResultDto m2 = matchResultDto(SERVER_EU_ENDPOINT);
-            List<MatchResultDto> matches = List.of(m1, m2);
+            when(serverService.getMatchesSince(SERVER_EU_ENDPOINT, DEFAULT_PLAYED_AT)).thenReturn(matches);
 
-            when(serverService.getMatchesSince(SERVER_EU_ENDPOINT, since)).thenReturn(matches);
-
-            mockMvc.perform(get(GET_SERVER_MATCHES_SINCE_PATH, SERVER_EU_ENDPOINT, timestamp)
-                            .accept(APPLICATION_JSON))
+            mockMvc.perform(get(GET_SERVER_MATCHES_SINCE_PATH, DEFAULT_TIMESTAMP)
+                            .param(PARAM_ENDPOINT, SERVER_EU_ENDPOINT).accept(APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
                     .andExpect(jsonPath("$.length()").value(matches.size()))
-                    .andExpect(jsonPath("$[0].id").value(m1.getId()))
-                    .andExpect(jsonPath("$[1].id").value(m2.getId()));
+                    .andExpect(jsonPath("$[0].id").value(ID_A.toString()))
+                    .andExpect(jsonPath("$[1].id").value(ID_B.toString()));
 
-            verify(serverService).getMatchesSince(SERVER_EU_ENDPOINT, since);
+            verify(serverService).getMatchesSince(SERVER_EU_ENDPOINT, DEFAULT_PLAYED_AT);
             verifyNoMoreInteractions(serverService);
         }
 
         @Test
         void shouldReturnEmptyListWhenNoMatches() throws Exception {
-            long timestamp = 1_700_000_000L;
-            Instant since = Instant.ofEpochSecond(timestamp);
+            when(serverService.getMatchesSince(SERVER_US_ENDPOINT, DEFAULT_PLAYED_AT)).thenReturn(emptyList());
 
-            when(serverService.getMatchesSince(SERVER_US_ENDPOINT, since)).thenReturn(emptyList());
-
-            mockMvc.perform(get(GET_SERVER_MATCHES_SINCE_PATH, SERVER_US_ENDPOINT, timestamp)
-                            .accept(APPLICATION_JSON))
+            mockMvc.perform(get(GET_SERVER_MATCHES_SINCE_PATH, DEFAULT_TIMESTAMP)
+                            .param(PARAM_ENDPOINT, SERVER_US_ENDPOINT).accept(APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
                     .andExpect(jsonPath("$.length()").value(0));
 
-            verify(serverService).getMatchesSince(SERVER_US_ENDPOINT, since);
+            verify(serverService).getMatchesSince(SERVER_US_ENDPOINT, DEFAULT_PLAYED_AT);
             verifyNoMoreInteractions(serverService);
         }
 
         @Test
         void shouldReturn500WhenServiceFails() throws Exception {
-            long timestamp = 1_700_000_000L;
-            Instant since = Instant.ofEpochSecond(timestamp);
+            when(serverService.getMatchesSince(SERVER_EU_ENDPOINT, DEFAULT_PLAYED_AT)).thenThrow(new RuntimeException());
 
-            when(serverService.getMatchesSince(SERVER_EU_ENDPOINT, since)).thenThrow(new RuntimeException());
-
-            mockMvc.perform(get(GET_SERVER_MATCHES_SINCE_PATH, SERVER_EU_ENDPOINT, timestamp)
-                            .accept(APPLICATION_JSON))
+            mockMvc.perform(get(GET_SERVER_MATCHES_SINCE_PATH, DEFAULT_TIMESTAMP)
+                            .param(PARAM_ENDPOINT, SERVER_EU_ENDPOINT).accept(APPLICATION_JSON))
                     .andExpect(status().isInternalServerError());
 
-            verify(serverService).getMatchesSince(SERVER_EU_ENDPOINT, since);
+            verify(serverService).getMatchesSince(SERVER_EU_ENDPOINT, DEFAULT_PLAYED_AT);
             verifyNoMoreInteractions(serverService);
         }
     }
@@ -153,8 +152,8 @@ class ServerControllerTest {
         @Test
         void shouldReturnAllServers() throws Exception {
             List<ServerInfoDto> servers = List.of(
-                    serverInfoDto(SERVER_EU_ENDPOINT),
-                    serverInfoDto(SERVER_US_ENDPOINT));
+                    testServerInfo().withEndpoint(SERVER_EU_ENDPOINT).buildDto(),
+                    testServerInfo().withEndpoint(SERVER_US_ENDPOINT).buildDto());
 
             when(serverService.getAllServers()).thenReturn(servers);
 
@@ -195,16 +194,17 @@ class ServerControllerTest {
     }
 
     @Nested
-    @DisplayName("GET /servers/{endpoint}/stats")
+    @DisplayName("GET /servers/stats")
     class GetServerStats {
 
         @Test
         void shouldReturnServerStatsWhenFound() throws Exception {
-            ServerStatsDto stats = serverStatsDto(SERVER_EU_ENDPOINT);
+            ServerStatsDto stats = testServerStatsDto().withEndpoint(SERVER_EU_ENDPOINT).build();
 
             when(serverService.getServerStats(SERVER_EU_ENDPOINT)).thenReturn(Optional.of(stats));
 
-            mockMvc.perform(get(GET_SERVER_STATS_PATH, SERVER_EU_ENDPOINT).accept(APPLICATION_JSON))
+            mockMvc.perform(get(GET_SERVER_STATS_PATH)
+                            .param(PARAM_ENDPOINT, SERVER_EU_ENDPOINT).accept(APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isMap())
                     .andExpect(jsonPath("$.endpoint").value(SERVER_EU_ENDPOINT));
@@ -217,7 +217,8 @@ class ServerControllerTest {
         void shouldReturn404WhenServerStatsNotFound() throws Exception {
             when(serverService.getServerStats(UNKNOWN_SERVER)).thenReturn(Optional.empty());
 
-            mockMvc.perform(get(GET_SERVER_STATS_PATH, UNKNOWN_SERVER).accept(APPLICATION_JSON))
+            mockMvc.perform(get(GET_SERVER_STATS_PATH)
+                            .param(PARAM_ENDPOINT, UNKNOWN_SERVER).accept(APPLICATION_JSON))
                     .andExpect(status().isNotFound());
 
             verify(serverService).getServerStats(UNKNOWN_SERVER);
@@ -226,9 +227,10 @@ class ServerControllerTest {
 
         @Test
         void shouldReturn500WhenServiceFails() throws Exception {
-            when(serverService.getServerStats(SERVER_EU_ENDPOINT)).thenThrow(new RuntimeException("boom"));
+            when(serverService.getServerStats(SERVER_EU_ENDPOINT)).thenThrow(new RuntimeException());
 
-            mockMvc.perform(get(GET_SERVER_STATS_PATH, SERVER_EU_ENDPOINT).accept(APPLICATION_JSON))
+            mockMvc.perform(get(GET_SERVER_STATS_PATH)
+                            .param(PARAM_ENDPOINT, SERVER_EU_ENDPOINT).accept(APPLICATION_JSON))
                     .andExpect(status().isInternalServerError());
 
             verify(serverService).getServerStats(SERVER_EU_ENDPOINT);

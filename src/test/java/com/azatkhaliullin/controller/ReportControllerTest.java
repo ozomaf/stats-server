@@ -14,13 +14,13 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
-import static com.azatkhaliullin.TestDataFactory.PLAYER_A;
-import static com.azatkhaliullin.TestDataFactory.PLAYER_B;
-import static com.azatkhaliullin.TestDataFactory.SERVER_EU_ENDPOINT;
-import static com.azatkhaliullin.TestDataFactory.SERVER_US_ENDPOINT;
-import static com.azatkhaliullin.TestDataFactory.matchResultDto;
-import static com.azatkhaliullin.TestDataFactory.playerStatsDto;
-import static com.azatkhaliullin.TestDataFactory.serverStatsDto;
+import static com.azatkhaliullin.TestConstants.SERVER_EU_ENDPOINT;
+import static com.azatkhaliullin.TestConstants.SERVER_US_ENDPOINT;
+import static com.azatkhaliullin.TestConstants.USERNAME_A;
+import static com.azatkhaliullin.TestConstants.USERNAME_B;
+import static com.azatkhaliullin.builder.MatchResultTestBuilder.testMatchResult;
+import static com.azatkhaliullin.builder.PlayerStatsTestBuilder.testPlayerStats;
+import static com.azatkhaliullin.builder.ServerStatsDtoBuilder.testServerStatsDto;
 import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -46,13 +46,13 @@ class ReportControllerTest {
 
     @Nested
     @DisplayName("GET /reports/recent-matches/{limit}")
-    class GetRecentMatches {
+    class GetRecentMatchesTests {
 
         @Test
         void shouldReturnRecentMatches() throws Exception {
-            MatchResultDto eu = matchResultDto(SERVER_EU_ENDPOINT);
-            MatchResultDto us = matchResultDto(SERVER_US_ENDPOINT);
-            List<MatchResultDto> matches = List.of(eu, us);
+            List<MatchResultDto> matches = List.of(
+                    testMatchResult().withServerEndpoint(SERVER_EU_ENDPOINT).buildDto(),
+                    testMatchResult().withServerEndpoint(SERVER_US_ENDPOINT).buildDto());
 
             when(reportService.getRecentMatches(LIMIT)).thenReturn(matches);
 
@@ -60,8 +60,8 @@ class ReportControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
                     .andExpect(jsonPath("$.length()").value(matches.size()))
-                    .andExpect(jsonPath("$[0].serverEndpoint").value(eu.getServerEndpoint()))
-                    .andExpect(jsonPath("$[1].serverEndpoint").value(us.getServerEndpoint()));
+                    .andExpect(jsonPath("$[0].serverEndpoint").value(SERVER_EU_ENDPOINT))
+                    .andExpect(jsonPath("$[1].serverEndpoint").value(SERVER_US_ENDPOINT));
 
             verify(reportService).getRecentMatches(LIMIT);
             verifyNoMoreInteractions(reportService);
@@ -82,7 +82,7 @@ class ReportControllerTest {
 
         @Test
         void shouldReturn500WhenServiceFails() throws Exception {
-            when(reportService.getRecentMatches(LIMIT)).thenThrow(new RuntimeException("boom"));
+            when(reportService.getRecentMatches(LIMIT)).thenThrow(new RuntimeException());
 
             mockMvc.perform(get(GET_RECENT_MATCHES_PATH, LIMIT).accept(APPLICATION_JSON))
                     .andExpect(status().isInternalServerError());
@@ -94,13 +94,13 @@ class ReportControllerTest {
 
     @Nested
     @DisplayName("GET /reports/best-players/{limit}")
-    class GetBestPlayers {
+    class GetBestPlayersTests {
 
         @Test
         void shouldReturnBestPlayers() throws Exception {
-            PlayerStatsDto a = playerStatsDto(PLAYER_A);
-            PlayerStatsDto b = playerStatsDto(PLAYER_B);
-            List<PlayerStatsDto> players = List.of(a, b);
+            List<PlayerStatsDto> players = List.of(
+                    testPlayerStats().withUsername(USERNAME_A).buildDto(),
+                    testPlayerStats().withUsername(USERNAME_B).buildDto());
 
             when(reportService.getBestPlayers(LIMIT)).thenReturn(players);
 
@@ -108,8 +108,8 @@ class ReportControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
                     .andExpect(jsonPath("$.length()").value(players.size()))
-                    .andExpect(jsonPath("$[0].username").value(PLAYER_A))
-                    .andExpect(jsonPath("$[1].username").value(PLAYER_B));
+                    .andExpect(jsonPath("$[0].username").value(USERNAME_A))
+                    .andExpect(jsonPath("$[1].username").value(USERNAME_B));
 
             verify(reportService).getBestPlayers(LIMIT);
             verifyNoMoreInteractions(reportService);
@@ -131,13 +131,13 @@ class ReportControllerTest {
 
     @Nested
     @DisplayName("GET /reports/popular-servers/{limit}")
-    class GetPopularServers {
+    class GetPopularServersTest {
 
         @Test
         void shouldReturnPopularServers() throws Exception {
-            ServerStatsDto eu = serverStatsDto(SERVER_EU_ENDPOINT);
-            ServerStatsDto us = serverStatsDto(SERVER_US_ENDPOINT);
-            List<ServerStatsDto> servers = List.of(eu, us);
+            List<ServerStatsDto> servers = List.of(
+                    testServerStatsDto().withEndpoint(SERVER_EU_ENDPOINT).build(),
+                    testServerStatsDto().withEndpoint(SERVER_US_ENDPOINT).build());
 
             when(reportService.getPopularServers(LIMIT)).thenReturn(servers);
 

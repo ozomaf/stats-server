@@ -33,6 +33,11 @@ public class RandomMatchScheduler {
     public void generateRandomMatch() {
         log.debug("Starting random match generation");
 
+        if (serverRepository.isEmpty() || playerRepository.isEmpty()) {
+            log.debug("Skipping match generation cause not enough data");
+            return;
+        }
+
         Long totalPlayers = playerRepository.totalPlayers();
         int count = random.nextInt(GameConstants.MIN_PLAYERS, totalPlayers.intValue() + 1);
 

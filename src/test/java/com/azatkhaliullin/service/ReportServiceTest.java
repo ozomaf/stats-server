@@ -17,16 +17,16 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Instant;
 import java.util.List;
 
-import static com.azatkhaliullin.TestDataFactory.PLAYED_AT;
-import static com.azatkhaliullin.TestDataFactory.SERVER_EU_ENDPOINT;
-import static com.azatkhaliullin.TestDataFactory.SERVER_GE_ENDPOINT;
-import static com.azatkhaliullin.TestDataFactory.SERVER_US_ENDPOINT;
-import static com.azatkhaliullin.TestDataFactory.matchResult;
-import static com.azatkhaliullin.TestDataFactory.serverInfo;
-import static com.azatkhaliullin.TestDataFactory.serverStats;
+import static com.azatkhaliullin.TestConstants.DEFAULT_PLAYED_AT;
+import static com.azatkhaliullin.TestConstants.LIMIT;
+import static com.azatkhaliullin.TestConstants.SERVER_EU_ENDPOINT;
+import static com.azatkhaliullin.TestConstants.SERVER_US_ENDPOINT;
+import static com.azatkhaliullin.TestConstants.TOTAL_MATCHES;
+import static com.azatkhaliullin.builder.MatchResultTestBuilder.testMatchResult;
+import static com.azatkhaliullin.builder.ServerInfoBuilder.testServerInfo;
+import static com.azatkhaliullin.builder.ServerStatsDtoBuilder.testServerStatsDto;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -51,20 +51,17 @@ class ReportServiceTest {
 
     @Nested
     @DisplayName("getRecentMatches")
-    class GetRecentMatches {
+    class GetRecentMatchesTests {
 
         @Test
         void shouldMapMatchesAndRespectLimit() {
-            int limit = 2;
-            Instant fixedTime = PLAYED_AT.toInstant();
-
             List<MatchResult> recentMatches = List.of(
-                    matchResult(SERVER_US_ENDPOINT, fixedTime),
-                    matchResult(SERVER_EU_ENDPOINT, fixedTime.plusSeconds(1800)));
+                    testMatchResult().withServerEndpoint(SERVER_US_ENDPOINT).withPlayedAt(DEFAULT_PLAYED_AT).build(),
+                    testMatchResult().withServerEndpoint(SERVER_EU_ENDPOINT).withPlayedAt(DEFAULT_PLAYED_AT).build());
 
-            when(matchRepository.getRecentMatches(limit)).thenReturn(recentMatches);
+            when(matchRepository.findRecent(LIMIT)).thenReturn(recentMatches);
 
-            List<MatchResultDto> result = reportService.getRecentMatches(limit);
+            List<MatchResultDto> result = reportService.getRecentMatches(LIMIT);
 
             assertThat(result)
                     .hasSize(2)
@@ -72,41 +69,38 @@ class ReportServiceTest {
                     .extracting(MatchResultDto::getServerEndpoint)
                     .containsExactly(SERVER_US_ENDPOINT, SERVER_EU_ENDPOINT);
 
-            verify(matchRepository).getRecentMatches(limit);
+            verify(matchRepository).findRecent(LIMIT);
             verifyNoMoreInteractions(matchRepository);
         }
 
 
         @Test
         void shouldReturnEmptyWhenNoMatches() {
-            when(matchRepository.getRecentMatches(5)).thenReturn(emptyList());
+            when(matchRepository.findRecent(5)).thenReturn(emptyList());
 
             List<MatchResultDto> result = reportService.getRecentMatches(5);
 
             assertThat(result).isEmpty();
-            verify(matchRepository).getRecentMatches(5);
+            verify(matchRepository).findRecent(5);
         }
     }
 
     @Nested
     @DisplayName("getPopularServers")
-    class GetPopularServers {
+    class GetPopularServersTests {
 
         @Test
         void shouldSortServersByTotalMatchesAndRespectLimit() {
-            ServerInfo eu = serverInfo(SERVER_EU_ENDPOINT);
-            ServerInfo us = serverInfo(SERVER_US_ENDPOINT);
-            ServerInfo ge = serverInfo(SERVER_GE_ENDPOINT);
+            ServerInfo serverInfoA = testServerInfo().withEndpoint(SERVER_EU_ENDPOINT).build();
+            ServerInfo serverInfoB = testServerInfo().withEndpoint(SERVER_US_ENDPOINT).build();
 
-            when(serverRepository.findAll()).thenReturn(List.of(eu, us, ge));
+            when(serverRepository.findAll()).thenReturn(List.of(serverInfoA, serverInfoB));
 
-            ServerStatsDto e1 = serverStats(eu, 10);
-            ServerStatsDto e2 = serverStats(us, 5);
-            ServerStatsDto e3 = serverStats(ge, 0);
+            ServerStatsDto serverStatsDtoA = testServerStatsDto().withEndpoint(SERVER_EU_ENDPOINT).withTotalMatches(TOTAL_MATCHES + TOTAL_MATCHES).build();
+            ServerStatsDto serverStatsDtoB = testServerStatsDto().withEndpoint(SERVER_US_ENDPOINT).withTotalMatches(TOTAL_MATCHES + TOTAL_MATCHES).build();
 
-            when(serverService.buildServerStats(eu)).thenReturn(e1);
-            when(serverService.buildServerStats(us)).thenReturn(e2);
-            when(serverService.buildServerStats(ge)).thenReturn(e3);
+            when(serverService.buildServerStats(serverInfoA)).thenReturn(serverStatsDtoA);
+            when(serverService.buildServerStats(serverInfoB)).thenReturn(serverStatsDtoB);
 
             List<ServerStatsDto> result = reportService.getPopularServers(2);
 
@@ -116,9 +110,8 @@ class ReportServiceTest {
                     .containsExactly(SERVER_EU_ENDPOINT, SERVER_US_ENDPOINT);
 
             verify(serverRepository).findAll();
-            verify(serverService).buildServerStats(eu);
-            verify(serverService).buildServerStats(us);
-            verify(serverService).buildServerStats(ge);
+            verify(serverService).buildServerStats(serverInfoA);
+            verify(serverService).buildServerStats(serverInfoB);
         }
 
         @Test
