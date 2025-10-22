@@ -6,14 +6,14 @@ info:
 
 paths:
 
-  /servers/{endpoint}/info:
+  /servers/info/by-endpoint:
     get:
       summary: Get server info
       description: Returns basic information about a specific game server.
       operationId: getServerInfo
       parameters:
         - name: endpoint
-          in: path
+          in: query
           required: true
           schema:
             type: string
@@ -29,14 +29,14 @@ paths:
         '500':
           description: Internal server error
 
-  /servers/{endpoint}/matches/{timestamp}:
+  /servers/matches/{timestamp}:
     get:
       summary: Get matches since timestamp
       description: Returns all matches that occurred on the given server since the specified timestamp.
       operationId: getMatchesSince
       parameters:
         - name: endpoint
-          in: path
+          in: query
           required: true
           schema:
             type: string
@@ -80,14 +80,14 @@ paths:
         '500':
           description: Internal server error
 
-  /servers/{endpoint}/stats:
+  /servers/stats:
     get:
       summary: Get server stats
       description: Returns aggregated statistics for the specified server.
       operationId: getServerStats
       parameters:
         - name: endpoint
-          in: path
+          in: query
           required: true
           schema:
             type: string
@@ -229,6 +229,7 @@ components:
       properties:
         id:
           type: string
+          format: uuid
           description: Unique match identifier
         serverEndpoint:
           type: string
@@ -238,10 +239,9 @@ components:
           format: date-time
           description: When the match was played
         scores:
-          type: object
-          description: Map of player scores in the match, key = username
-          additionalProperties:
-            type: integer
+          type: array
+          items:
+            $ref: "#/components/schemas/PlayerScore"
       required:
         - id
         - serverEndpoint
@@ -323,3 +323,17 @@ components:
         - averagePlayersPerMatch
         - totalScore
         - averageScore
+
+    PlayerScore:
+      type: object
+      properties:
+        playerId:
+          type: string
+          format: uuid
+          description: Unique player identifier
+        score:
+          type: integer
+          description: Points scored by a player in a match
+      required:
+        - playerId
+        - score

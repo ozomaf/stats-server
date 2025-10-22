@@ -19,19 +19,16 @@ public class ReportController implements ReportsApi {
 
     @Override
     public ResponseEntity<List<MatchResultDto>> getRecentMatches(Integer count) {
-        List<MatchResultDto> matches = reportService.getRecentMatches(count);
-        return ResponseEntity.ok(matches);
+        return ResponseEntity.ok(reportService.getRecentMatches(count));
     }
 
     @Override
     public ResponseEntity<List<PlayerStatsDto>> getBestPlayers(Integer count) {
-        List<PlayerStatsDto> players = reportService.getBestPlayers(count);
-        return ResponseEntity.ok(players);
+        return ResponseEntity.ok(reportService.getBestPlayers(count));
     }
 
     @Override
     public ResponseEntity<List<ServerStatsDto>> getPopularServers(Integer count) {
-        List<ServerStatsDto> servers = reportService.getPopularServers(count);
-        return ResponseEntity.ok(servers);
+        return ResponseEntity.ok(reportService.getPopularServers(count));
     }
 }

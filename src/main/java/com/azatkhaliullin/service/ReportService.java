@@ -26,7 +26,7 @@ public class ReportService {
 
     public List<MatchResultDto> getRecentMatches(int count) {
         log.debug("Getting recent {} matches", count);
-        return matchRepository.getRecentMatches(count).stream()
+        return matchRepository.findRecent(count).stream()
                 .map(matchResultMapper::toDto)
                 .toList();
     }
@@ -38,7 +38,6 @@ public class ReportService {
 
     public List<ServerStatsDto> getPopularServers(int count) {
         log.debug("Getting popular {} servers", count);
-
         return serverRepository.findAll().stream()
                 .map(serverService::buildServerStats)
                 .sorted(Comparator.comparing(ServerStatsDto::getTotalMatches).reversed())

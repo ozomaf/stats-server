@@ -22,7 +22,7 @@ public class ServerController implements ServersApi {
     public ResponseEntity<ServerInfoDto> getServerInfo(String endpoint) {
         return serverService.getServerInfo(endpoint)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @Override
@@ -42,6 +42,6 @@ public class ServerController implements ServersApi {
     public ResponseEntity<ServerStatsDto> getServerStats(String endpoint) {
         return serverService.getServerStats(endpoint)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

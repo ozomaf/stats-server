@@ -17,6 +17,6 @@ public class PlayerController implements PlayersApi {
     public ResponseEntity<PlayerStatsDto> getPlayerStats(String username) {
         return playerService.getPlayerStats(username)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

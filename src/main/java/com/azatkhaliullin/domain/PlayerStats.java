@@ -5,15 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Player {
-    private UUID id;
-    private String username;
-    private int level;
-    private String country;
+public class PlayerStats {
+    private int totalMatches;
+    private int totalScore;
+    private int bestScore;
+    private int worstScore;
+    private double averageScore;
 }

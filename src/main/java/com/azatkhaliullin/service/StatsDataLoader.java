@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.io.ClassPathResource;
@@ -44,7 +45,7 @@ public class StatsDataLoader implements ApplicationRunner {
         try (InputStream is = new ClassPathResource(SERVERS_JSON_PATH).getInputStream()) {
             List<ServerInfo> servers = objectMapper.readValue(is, new TypeReference<>() {
             });
-            if (servers != null && !servers.isEmpty()) {
+            if (CollectionUtils.isNotEmpty(servers)) {
                 serverRepository.saveAll(servers);
                 log.info("Loaded {} servers", servers.size());
             } else {
@@ -65,7 +66,7 @@ public class StatsDataLoader implements ApplicationRunner {
         try (InputStream is = new ClassPathResource(PLAYERS_JSON_PATH).getInputStream()) {
             List<Player> players = objectMapper.readValue(is, new TypeReference<>() {
             });
-            if (players != null && !players.isEmpty()) {
+            if (CollectionUtils.isNotEmpty(players)) {
                 playerRepository.saveAll(players);
                 log.info("Loaded {} players", players.size());
             } else {

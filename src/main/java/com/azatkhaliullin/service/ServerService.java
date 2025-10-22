@@ -1,6 +1,7 @@
 package com.azatkhaliullin.service;
 
 import com.azatkhaliullin.domain.MatchResult;
+import com.azatkhaliullin.domain.PlayerScore;
 import com.azatkhaliullin.domain.ServerInfo;
 import com.azatkhaliullin.dto.MatchResultDto;
 import com.azatkhaliullin.dto.ServerInfoDto;
@@ -15,8 +16,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+
+import static com.azatkhaliullin.util.GameConstants.*;
 
 @Slf4j
 @Service
@@ -43,7 +45,7 @@ public class ServerService {
 
     public List<MatchResultDto> getMatchesSince(String endpoint, Instant since) {
         log.debug("Getting matches for server {} since {}", endpoint, since);
-        return matchRepository.getMatchesSince(endpoint, since).stream()
+        return matchRepository.findByServerSince(endpoint, since).stream()
                 .map(matchResultMapper::toDto)
                 .toList();
     }
@@ -55,22 +57,23 @@ public class ServerService {
     }
 
     public ServerStatsDto buildServerStats(ServerInfo server) {
-        List<MatchResult> matches = matchRepository.getAllMatchesForServer(server.getEndpoint());
+        List<MatchResult> matches = matchRepository.findByServerEndpoint(server.getEndpoint());
 
-        int totalMatches = matches.size();
+        int totalMatches = 0;
         int totalPlayers = 0;
         int totalScore = 0;
 
         for (MatchResult match : matches) {
-            Map<String, Integer> scores = match.getScores();
+            totalMatches++;
+            List<PlayerScore> scores = match.getScores();
             totalPlayers += scores.size();
-            totalScore += scores.values().stream()
-                    .mapToInt(Integer::intValue)
+            totalScore += scores.stream()
+                    .mapToInt(PlayerScore::getScore)
                     .sum();
         }
 
         int averagePlayersPerMatch = totalMatches > 0 ? totalPlayers / totalMatches : 0;
-        double averageScore = totalPlayers > 0 ? (double) totalScore / totalPlayers : 0.0;
+        double averageScore = totalPlayers > 0 ? (double) totalScore / totalPlayers : DEFAULT_AVERAGE_SCORE;
 
         return ServerStatsDto.builder()
                 .endpoint(server.getEndpoint())
@@ -79,7 +82,11 @@ public class ServerService {
                 .totalMatches(totalMatches)
                 .averagePlayersPerMatch(averagePlayersPerMatch)
                 .totalScore(totalScore)
-                .averageScore(Math.round(averageScore * 100.0) / 100.0)
+                .averageScore(roundToTwoDecimals(averageScore))
                 .build();
+    }
+
+    private double roundToTwoDecimals(double value) {
+        return Math.round(value * DEFAULT_DECIMAL_SCALE) / DEFAULT_DECIMAL_SCALE;
     }
 }

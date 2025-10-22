@@ -1,31 +1,31 @@
 [
   {
-    "endpoint": "first-server.com",
+    "endpoint": "https://api.first-server.com/game",
     "name": "First Server",
     "region": "US-East"
   },
   {
-    "endpoint": "second-server.com",
+    "endpoint": "https://api.second-server.com/game",
     "name": "Second Server",
     "region": "Europe-West"
   },
   {
-    "endpoint": "third-server.com",
+    "endpoint": "https://api.third-server.com/game",
     "name": "Third Server",
     "region": "Asia-South"
   },
   {
-    "endpoint": "fourth-server.com",
+    "endpoint": "https://api.fourth-server.com/game",
     "name": "Fourth Server",
     "region": "US-West"
   },
   {
-    "endpoint": "fifth-server.com",
+    "endpoint": "https://api.fifth-server.com/game",
     "name": "Fifth Server",
     "region": "Europe-North"
   },
   {
-    "endpoint": "sixth-server.com",
+    "endpoint": "https://api.sixth-server.com/game",
     "name": "Sixth Server",
     "region": "Asia-East"
   }

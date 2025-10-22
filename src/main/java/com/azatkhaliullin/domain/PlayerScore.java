@@ -5,17 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MatchResult {
-    private UUID id;
-    private String serverEndpoint;
-    private Instant playedAt;
-    private List<PlayerScore> scores;
+public class PlayerScore {
+    private UUID playerId;
+    private int score;
 }
