@@ -38,12 +38,6 @@ public class TestConstants {
     public static final double RATING = 100.0;
     public static final int AVERAGE_PLAYER_PER_MATCH = 2;
 
-    public static final String TOTAL_MATCHES_KEY = "totalMatches";
-    public static final String TOTAL_SCORE_KEY = "totalScore";
-    public static final String BEST_SCORE_KEY = "bestScore";
-    public static final String WORST_SCORE_KEY = "worstScore";
-    public static final String AVERAGE_SCORE_KEY = "averageScore";
-
     public static final int LIMIT = 2;
 
 }

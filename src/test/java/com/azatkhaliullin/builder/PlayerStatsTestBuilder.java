@@ -3,20 +3,13 @@ package com.azatkhaliullin.builder;
 import com.azatkhaliullin.domain.PlayerStats;
 import com.azatkhaliullin.dto.PlayerStatsDto;
 
-import java.util.Map;
-
 import static com.azatkhaliullin.TestConstants.AVERAGE_SCORE;
-import static com.azatkhaliullin.TestConstants.AVERAGE_SCORE_KEY;
 import static com.azatkhaliullin.TestConstants.BEST_SCORE;
-import static com.azatkhaliullin.TestConstants.BEST_SCORE_KEY;
 import static com.azatkhaliullin.TestConstants.RATING;
 import static com.azatkhaliullin.TestConstants.TOTAL_MATCHES;
-import static com.azatkhaliullin.TestConstants.TOTAL_MATCHES_KEY;
 import static com.azatkhaliullin.TestConstants.TOTAL_SCORE;
-import static com.azatkhaliullin.TestConstants.TOTAL_SCORE_KEY;
 import static com.azatkhaliullin.TestConstants.USERNAME_A;
 import static com.azatkhaliullin.TestConstants.WORST_SCORE;
-import static com.azatkhaliullin.TestConstants.WORST_SCORE_KEY;
 
 public class PlayerStatsTestBuilder {
 
@@ -41,15 +34,6 @@ public class PlayerStatsTestBuilder {
                 .withWorstScore(Integer.MAX_VALUE)
                 .withAverageScore(0.0)
                 .withRating(0.0);
-    }
-
-    public static Map<Object, Object> invalidPlayerStatsMap() {
-        return Map.of(
-                TOTAL_MATCHES_KEY, "invalid",
-                TOTAL_SCORE_KEY, "not-a-number",
-                BEST_SCORE_KEY, "abc",
-                WORST_SCORE_KEY, "xyz",
-                AVERAGE_SCORE_KEY, "def");
     }
 
     public PlayerStatsTestBuilder withUsername(String username) {
@@ -101,14 +85,5 @@ public class PlayerStatsTestBuilder {
 
     public PlayerStats buildDomain() {
         return new PlayerStats(totalMatches, totalScore, bestScore, worstScore, averageScore);
-    }
-
-    public Map<Object, Object> buildMap() {
-        return Map.of(
-                TOTAL_MATCHES_KEY, totalMatches,
-                TOTAL_SCORE_KEY, totalScore,
-                BEST_SCORE_KEY, bestScore,
-                WORST_SCORE_KEY, worstScore,
-                AVERAGE_SCORE_KEY, averageScore);
     }
 }

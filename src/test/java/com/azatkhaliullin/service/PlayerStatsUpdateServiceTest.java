@@ -2,7 +2,6 @@ package com.azatkhaliullin.service;
 
 import com.azatkhaliullin.domain.MatchResult;
 import com.azatkhaliullin.domain.PlayerStats;
-import com.azatkhaliullin.mapper.PlayerStatsMapper;
 import com.azatkhaliullin.repository.PlayerRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -13,7 +12,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.Map;
 
 import static com.azatkhaliullin.TestConstants.ID_A;
 import static com.azatkhaliullin.TestConstants.ID_B;
@@ -23,10 +21,8 @@ import static com.azatkhaliullin.builder.PlayerScoreTestBuilder.testPlayerScore;
 import static com.azatkhaliullin.builder.PlayerStatsTestBuilder.testPlayerStats;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -35,8 +31,6 @@ class PlayerStatsUpdateServiceTest {
 
     @Mock
     private PlayerRepository playerRepository;
-    @Mock
-    private PlayerStatsMapper playerStatsMapper;
     @InjectMocks
     private PlayerStatsUpdateService playerStatsUpdateService;
 
@@ -52,25 +46,18 @@ class PlayerStatsUpdateServiceTest {
                             testPlayerScore().withId(ID_B).withScore(SCORE).build()))
                     .build();
 
-            Map<Object, Object> existingStats1 = testPlayerStats().buildMap();
-            Map<Object, Object> existingStats2 = testPlayerStats().buildMap();
-
             PlayerStats currentStats1 = testPlayerStats().buildDomain();
             PlayerStats currentStats2 = testPlayerStats().buildDomain();
 
-            when(playerRepository.findPlayerStats(ID_A)).thenReturn(existingStats1);
-            when(playerRepository.findPlayerStats(ID_B)).thenReturn(existingStats2);
-            when(playerStatsMapper.fromMap(existingStats1)).thenReturn(currentStats1);
-            when(playerStatsMapper.fromMap(existingStats2)).thenReturn(currentStats2);
+            when(playerRepository.findPlayerStats(ID_A)).thenReturn(currentStats1);
+            when(playerRepository.findPlayerStats(ID_B)).thenReturn(currentStats2);
 
             playerStatsUpdateService.updatePlayerStats(match);
 
             verify(playerRepository).findPlayerStats(ID_A);
             verify(playerRepository).findPlayerStats(ID_B);
-            verify(playerStatsMapper, times(2)).fromMap(anyMap());
-            verify(playerStatsMapper, times(2)).toMap(any(PlayerStats.class));
-            verify(playerRepository).updatePlayerStats(eq(ID_A), anyMap());
-            verify(playerRepository).updatePlayerStats(eq(ID_B), anyMap());
+            verify(playerRepository).updatePlayerStats(eq(ID_A), any(PlayerStats.class));
+            verify(playerRepository).updatePlayerStats(eq(ID_B), any(PlayerStats.class));
         }
 
         @Test

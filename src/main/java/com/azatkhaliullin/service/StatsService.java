@@ -13,7 +13,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.azatkhaliullin.util.GameConstants.*;
+import static com.azatkhaliullin.util.GameConstants.DEFAULT_AVERAGE_SCORE;
+import static com.azatkhaliullin.util.GameConstants.DEFAULT_DECIMAL_SCALE;
+import static com.azatkhaliullin.util.GameConstants.DEFAULT_RATING;
+import static com.azatkhaliullin.util.GameConstants.WEIGHT_AVERAGE_SCORE;
+import static com.azatkhaliullin.util.GameConstants.WEIGHT_BEST_SCORE;
+import static com.azatkhaliullin.util.GameConstants.WEIGHT_TOTAL_SCORE;
+import static com.azatkhaliullin.util.GameConstants.WEIGHT_WORST_SCORE;
+import static com.azatkhaliullin.util.GameConstants.WORST_SCORE_NORMALIZER;
 
 
 @Slf4j
@@ -76,7 +83,7 @@ public class StatsService {
         return roundToTwoDecimals(ratingScore);
     }
 
-    private double roundToTwoDecimals(double value) {
+    public static double roundToTwoDecimals(double value) {
         return Math.round(value * DEFAULT_DECIMAL_SCALE) / DEFAULT_DECIMAL_SCALE;
     }
 }

@@ -18,7 +18,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-import static com.azatkhaliullin.util.GameConstants.*;
+import static com.azatkhaliullin.service.StatsService.roundToTwoDecimals;
+import static com.azatkhaliullin.util.GameConstants.DEFAULT_AVERAGE_SCORE;
 
 @Slf4j
 @Service
@@ -84,9 +85,5 @@ public class ServerService {
                 .totalScore(totalScore)
                 .averageScore(roundToTwoDecimals(averageScore))
                 .build();
-    }
-
-    private double roundToTwoDecimals(double value) {
-        return Math.round(value * DEFAULT_DECIMAL_SCALE) / DEFAULT_DECIMAL_SCALE;
     }
 }

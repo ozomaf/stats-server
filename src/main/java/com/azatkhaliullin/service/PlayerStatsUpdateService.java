@@ -3,15 +3,14 @@ package com.azatkhaliullin.service;
 import com.azatkhaliullin.domain.MatchResult;
 import com.azatkhaliullin.domain.PlayerScore;
 import com.azatkhaliullin.domain.PlayerStats;
-import com.azatkhaliullin.mapper.PlayerStatsMapper;
 import com.azatkhaliullin.repository.PlayerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
 import java.util.UUID;
 
+import static com.azatkhaliullin.service.StatsService.roundToTwoDecimals;
 import static com.azatkhaliullin.util.GameConstants.DEFAULT_AVERAGE_SCORE;
 
 @Slf4j
@@ -20,7 +19,6 @@ import static com.azatkhaliullin.util.GameConstants.DEFAULT_AVERAGE_SCORE;
 public class PlayerStatsUpdateService {
 
     private final PlayerRepository playerRepository;
-    private final PlayerStatsMapper playerStatsMapper;
 
     public void updatePlayerStats(MatchResult match) {
         match.getScores().forEach(this::updateSinglePlayerStats);
@@ -30,12 +28,10 @@ public class PlayerStatsUpdateService {
     private void updateSinglePlayerStats(PlayerScore score) {
         UUID playerId = score.getPlayerId();
         try {
-            Map<Object, Object> storedStatsMap = playerRepository.findPlayerStats(playerId);
-            PlayerStats currentStats = playerStatsMapper.fromMap(storedStatsMap);
+            PlayerStats currentStats = playerRepository.findPlayerStats(playerId);
             PlayerStats updatedStats = mergeStats(currentStats, score);
 
-            Map<String, String> redisMap = playerStatsMapper.toMap(updatedStats);
-            playerRepository.updatePlayerStats(playerId, redisMap);
+            playerRepository.updatePlayerStats(playerId, updatedStats);
 
             log.debug("Updated stats for player {}", playerId);
         } catch (Exception e) {
@@ -49,7 +45,8 @@ public class PlayerStatsUpdateService {
         int totalScore = current.getTotalScore() + newScore.getScore();
         int bestScore = Math.max(current.getBestScore(), newScore.getScore());
         int worstScore = Math.min(current.getWorstScore(), newScore.getScore());
-        double averageScore = totalMatches > 0 ? (double) totalScore / totalMatches : DEFAULT_AVERAGE_SCORE;
+        double averageScore = roundToTwoDecimals(
+                totalMatches > 0 ? (double) totalScore / totalMatches : DEFAULT_AVERAGE_SCORE);
 
         return new PlayerStats(totalMatches, totalScore, bestScore, worstScore, averageScore);
     }

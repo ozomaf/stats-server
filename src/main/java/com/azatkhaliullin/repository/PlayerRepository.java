@@ -1,11 +1,13 @@
 package com.azatkhaliullin.repository;
 
 import com.azatkhaliullin.domain.Player;
+import com.azatkhaliullin.domain.PlayerStats;
 import com.azatkhaliullin.util.GameConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
@@ -18,9 +20,11 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.azatkhaliullin.util.GameConstants.DEFAULT_AVERAGE_SCORE;
+
+@Slf4j
 @Repository
 @RequiredArgsConstructor
-@Slf4j
 public class PlayerRepository {
 
     private static final String KEY_PLAYERS_HASH = "players";
@@ -80,9 +84,15 @@ public class PlayerRepository {
         }
     }
 
-    public Map<Object, Object> findPlayerStats(UUID playerId) {
+    public PlayerStats findPlayerStats(UUID playerId) {
         String statsKey = playerStatsKey(playerId);
-        return redisTemplate.opsForHash().entries(statsKey);
+        PlayerStats stats = (PlayerStats) valueOps().get(statsKey);
+
+        if (stats == null) {
+            return new PlayerStats(0, 0, 0, Integer.MAX_VALUE, DEFAULT_AVERAGE_SCORE);
+        }
+
+        return stats;
     }
 
     public Long totalPlayers() {
@@ -90,9 +100,9 @@ public class PlayerRepository {
         return size < GameConstants.MIN_PLAYERS ? 0L : size;
     }
 
-    public void updatePlayerStats(UUID playerId, Map<String, String> newStats) {
+    public void updatePlayerStats(UUID playerId, PlayerStats stats) {
         String statsKey = playerStatsKey(playerId);
-        redisTemplate.opsForHash().putAll(statsKey, newStats);
+        valueOps().set(statsKey, stats);
     }
 
     public boolean isEmpty() {
@@ -107,6 +117,10 @@ public class PlayerRepository {
 
     private HashOperations<String, String, Player> hashOps() {
         return redisTemplate.opsForHash();
+    }
+
+    private ValueOperations<String, Object> valueOps() {
+        return redisTemplate.opsForValue();
     }
 
     private String playerStatsKey(UUID playerId) {
