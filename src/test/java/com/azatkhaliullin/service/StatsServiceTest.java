@@ -19,6 +19,7 @@ import static com.azatkhaliullin.TestConstants.ID_A;
 import static com.azatkhaliullin.TestConstants.ID_B;
 import static com.azatkhaliullin.TestConstants.SCORE;
 import static com.azatkhaliullin.TestConstants.TOTAL_MATCHES;
+import static com.azatkhaliullin.TestConstants.TOTAL_SCORE;
 import static com.azatkhaliullin.TestConstants.USERNAME_A;
 import static com.azatkhaliullin.TestConstants.WORST_SCORE;
 import static com.azatkhaliullin.builder.MatchResultTestBuilder.testMatchResult;
@@ -50,7 +51,7 @@ class StatsServiceTest {
 
             assertThat(result.getUsername()).isEqualTo(USERNAME_A);
             assertThat(result.getTotalMatches()).isEqualTo(TOTAL_MATCHES);
-            assertThat(result.getTotalScore()).isEqualTo(BEST_SCORE + WORST_SCORE);
+            assertThat(result.getTotalScore()).isEqualTo(TOTAL_SCORE);
             assertThat(result.getBestScore()).isEqualTo(BEST_SCORE);
             assertThat(result.getWorstScore()).isEqualTo(WORST_SCORE);
             assertThat(result.getAverageScore()).isEqualTo(AVERAGE_SCORE);

@@ -1,14 +1,19 @@
 package com.azatkhaliullin.controller;
 
+import com.azatkhaliullin.config.SecurityConfig;
 import com.azatkhaliullin.dto.MatchResultDto;
 import com.azatkhaliullin.dto.ServerInfoDto;
 import com.azatkhaliullin.dto.ServerStatsDto;
+import com.azatkhaliullin.security.JwtTokenFilter;
 import com.azatkhaliullin.service.ServerService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -17,8 +22,13 @@ import java.util.Optional;
 
 import static com.azatkhaliullin.TestConstants.DEFAULT_PLAYED_AT;
 import static com.azatkhaliullin.TestConstants.DEFAULT_TIMESTAMP;
+import static com.azatkhaliullin.TestConstants.GET_SERVERS_INFO_PATH;
+import static com.azatkhaliullin.TestConstants.GET_SERVER_INFO_PATH;
+import static com.azatkhaliullin.TestConstants.GET_SERVER_MATCHES_SINCE_PATH;
+import static com.azatkhaliullin.TestConstants.GET_SERVER_STATS_PATH;
 import static com.azatkhaliullin.TestConstants.ID_A;
 import static com.azatkhaliullin.TestConstants.ID_B;
+import static com.azatkhaliullin.TestConstants.PARAM_ENDPOINT;
 import static com.azatkhaliullin.TestConstants.SERVER_EU_ENDPOINT;
 import static com.azatkhaliullin.TestConstants.SERVER_US_ENDPOINT;
 import static com.azatkhaliullin.TestConstants.UNKNOWN_SERVER;
@@ -34,15 +44,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(ServerController.class)
+@WebMvcTest(value = ServerController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class,
+        excludeFilters = {
+                @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class),
+                @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JwtTokenFilter.class)})
 class ServerControllerTest {
 
-    public static final String GET_SERVER_INFO_PATH = "/servers/info/by-endpoint";
-    public static final String GET_SERVER_MATCHES_SINCE_PATH = "/servers/matches/{timestamp}";
-    public static final String GET_SERVERS_INFO_PATH = "/servers/info";
-    public static final String GET_SERVER_STATS_PATH = "/servers/stats";
-
-    public static final String PARAM_ENDPOINT = "endpoint";
 
     @Autowired
     private MockMvc mockMvc;

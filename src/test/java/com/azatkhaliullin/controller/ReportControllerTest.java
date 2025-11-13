@@ -1,19 +1,28 @@
 package com.azatkhaliullin.controller;
 
+import com.azatkhaliullin.config.SecurityConfig;
 import com.azatkhaliullin.dto.MatchResultDto;
 import com.azatkhaliullin.dto.PlayerStatsDto;
 import com.azatkhaliullin.dto.ServerStatsDto;
+import com.azatkhaliullin.security.JwtTokenFilter;
 import com.azatkhaliullin.service.ReportService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static com.azatkhaliullin.TestConstants.GET_BEST_PLAYERS_PATH;
+import static com.azatkhaliullin.TestConstants.GET_POPULAR_SERVERS_PATH;
+import static com.azatkhaliullin.TestConstants.GET_RECENT_MATCHES_PATH;
+import static com.azatkhaliullin.TestConstants.LIMIT;
 import static com.azatkhaliullin.TestConstants.SERVER_EU_ENDPOINT;
 import static com.azatkhaliullin.TestConstants.SERVER_US_ENDPOINT;
 import static com.azatkhaliullin.TestConstants.USERNAME_A;
@@ -30,13 +39,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(ReportController.class)
+@WebMvcTest(value = ReportController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class,
+        excludeFilters = {
+                @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class),
+                @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JwtTokenFilter.class)})
 class ReportControllerTest {
-
-    private static final String GET_RECENT_MATCHES_PATH = "/reports/recent-matches/{limit}";
-    private static final String GET_BEST_PLAYERS_PATH = "/reports/best-players/{limit}";
-    private static final String GET_POPULAR_SERVERS_PATH = "/reports/popular-servers/{limit}";
-    private static final int LIMIT = 2;
 
     @Autowired
     private MockMvc mockMvc;
