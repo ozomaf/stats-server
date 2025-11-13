@@ -1,0 +1,20 @@
+spring:
+  data:
+    redis:
+      url: redis://default:redispw@localhost:32768
+
+# Random match generation settings
+stats:
+  random-match:
+    cron: "*/5 * * * * *"
+
+# JWT settings
+jwt:
+  algorithm: RSA
+  jws-algorithm: RS256
+  key-size: 2048
+  keys-dir: keys
+  public-key-file: public.key
+  private-key-file: private.key
+  expiration: 3600
+  key-id: stats-server-key

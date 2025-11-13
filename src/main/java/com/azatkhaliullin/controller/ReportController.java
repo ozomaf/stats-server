@@ -1,6 +1,7 @@
 package com.azatkhaliullin.controller;
 
 import com.azatkhaliullin.api.ReportsApi;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import com.azatkhaliullin.dto.MatchResultDto;
 import com.azatkhaliullin.dto.PlayerStatsDto;
 import com.azatkhaliullin.dto.ServerStatsDto;
@@ -13,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class ReportController implements ReportsApi {
 
     private final ReportService reportService;

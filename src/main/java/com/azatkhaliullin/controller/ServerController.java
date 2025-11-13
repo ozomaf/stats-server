@@ -1,6 +1,7 @@
 package com.azatkhaliullin.controller;
 
 import com.azatkhaliullin.api.ServersApi;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import com.azatkhaliullin.dto.MatchResultDto;
 import com.azatkhaliullin.dto.ServerInfoDto;
 import com.azatkhaliullin.dto.ServerStatsDto;
@@ -14,6 +15,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class ServerController implements ServersApi {
 
     private final ServerService serverService;

@@ -6,6 +6,46 @@ info:
 
 paths:
 
+  /auth/login:
+    post:
+      summary: Login
+      description: Authenticate user with login and password, and get JWT token.
+      operationId: login
+      security: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Successfully authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Unauthorized - invalid credentials
+        '500':
+          description: Internal server error
+
+  /jwk/.well-known/jwks.json:
+    get:
+      summary: Get JWKS
+      description: Get JSON Web Key Set for JWT token validation
+      operationId: getJwks
+      security: [ ]
+      responses:
+        '200':
+          description: Successful response with JWKS
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JwksResponse'
+        '500':
+          description: Internal server error
+
   /servers/info/by-endpoint:
     get:
       summary: Get server info
@@ -106,7 +146,7 @@ paths:
   /players/{username}/stats:
     get:
       summary: Get player stats
-      description: Returns aggregated statistics for a specific player.
+      description: Returns aggregated statistics for a specific player. Requires JWT token with playerId matching the requested username.
       operationId: getPlayerStats
       parameters:
         - name: username
@@ -121,6 +161,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PlayerStatsDto'
+        '403':
+          description: Forbidden - playerId in token does not match requested username
         '404':
           description: Player not found
         '500':
@@ -206,6 +248,62 @@ paths:
 
 components:
   schemas:
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Player's username
+        password:
+          type: string
+          description: Player's password
+      required:
+        - username
+        - password
+
+    LoginResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: JWT token
+        expiresIn:
+          type: integer
+          format: int64
+          description: Token expiration time in seconds
+      required:
+        - accessToken
+        - expiresIn
+
+    JwksResponse:
+      type: object
+      properties:
+        keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/JwkKey'
+
+    JwkKey:
+      type: object
+      properties:
+        kty:
+          type: string
+          description: Key type
+        kid:
+          type: string
+          description: Key identifier
+        alg:
+          type: string
+          description: Signature algorithm
+        use:
+          type: string
+          description: Key assignment
+        n:
+          type: string
+          description: RSA module in base64url
+        e:
+          type: string
+          description: RSA indicator in base64url
 
     ServerInfoDto:
       type: object
